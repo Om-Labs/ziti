@@ -1,0 +1,20 @@
+# CoreDNS hosts reference — DO NOT kubectl apply this file directly.
+# Use scripts/patch_coredns.sh which discovers the nginx ingress ClusterIP
+# dynamically and merges entries into the existing Corefile safely.
+#
+# These entries are needed for in-cluster services that resolve each other
+# by external hostname (OIDC validation, webhooks, repo access).
+#
+# Entries (all point to nginx ingress ClusterIP, discovered at runtime):
+#
+#   <INGRESS_CLUSTERIP> auth-buck.omlabs.org      # Keycloak OIDC
+#   <INGRESS_CLUSTERIP> buck-git.omlabs.org       # Gitea
+#   <INGRESS_CLUSTERIP> argocd-buck.omlabs.org    # ArgoCD
+#
+# Why these three:
+#   - Coder, Slidee, ArgoCD validate tokens against auth-buck.omlabs.org
+#   - ArgoCD pulls repos from buck-git.omlabs.org
+#   - Gitea sends webhooks to argocd-buck.omlabs.org
+#
+# Other services (Harbor, Longhorn, MinIO, etc.) do not need entries because
+# no in-cluster pod resolves them by external hostname.
