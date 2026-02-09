@@ -12,8 +12,8 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
 OVERLAY="${ZITI_OVERLAY:-buck-lab}"
-CTRL_CHART_VERSION="${ZITI_CTRL_CHART_VERSION:-1.2.2}"
-ROUTER_CHART_VERSION="${ZITI_ROUTER_CHART_VERSION:-0.11.0}"
+CTRL_CHART_VERSION="${ZITI_CTRL_CHART_VERSION:-3.0.0}"
+ROUTER_CHART_VERSION="${ZITI_ROUTER_CHART_VERSION:-2.0.0}"
 SKIP_ROUTER="${SKIP_ROUTER:-}"
 HARBOR_HOST="${HARBOR_HOST:-harbor.buck-lab-k8s.omlabs.org}"
 AKV_NAME="${AKV_NAME:-omlab-secrets}"
@@ -120,9 +120,9 @@ else
   # Extract JWT from the pod.
   ROUTER_JWT=$(kubectl -n ziti exec "$CTRL_POD" -- cat /tmp/router.jwt)
 
-  # Create k8s secret with the JWT.
+  # Create k8s secret with the JWT (key must be "enrollmentJwt" for the chart).
   kubectl -n ziti create secret generic "$JWT_SECRET" \
-    --from-literal=enrollment-jwt="$ROUTER_JWT" \
+    --from-literal=enrollmentJwt="$ROUTER_JWT" \
     --dry-run=client -o yaml | kubectl apply -f -
 fi
 
@@ -138,7 +138,8 @@ helm upgrade --install ziti-router openziti/ziti-router \
   --version "$ROUTER_CHART_VERSION" \
   -f k8s/router/values.yaml \
   "${router_extra[@]}" \
-  --set "enrollmentJwt.existingSecret=$JWT_SECRET"
+  --set "enrollmentJwtFromSecret=true" \
+  --set "enrollmentJwtSecretName=$JWT_SECRET"
 
 log "Waiting for router"
 wait_for_rollout ziti deploy/ziti-router 300

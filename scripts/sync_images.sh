@@ -15,15 +15,16 @@ set -euo pipefail
 #   scripts/sync_images.sh                    # sync all images
 #   ZITI_TAG=1.2.0 scripts/sync_images.sh     # pin a specific tag
 
-HARBOR_HOST="${HARBOR_HOST:-harbor.buck-lab-k8s.omlabs.org}"
+HARBOR_HOST="${HARBOR_HOST:-harbor.buck-lab-k8s.omlabs.org:32632}"
 HARBOR_PROJECT="${HARBOR_PROJECT:-openziti}"
-ZITI_TAG="${ZITI_TAG:-latest}"
+ZITI_TAG="${ZITI_TAG:-1.7.2}"
+DEST_TLS_VERIFY="${DEST_TLS_VERIFY:-false}"
 
 # Upstream images to mirror.
 IMAGES=(
   "docker.io/openziti/ziti-controller"
   "docker.io/openziti/ziti-router"
-  "docker.io/openziti/ziti-console"
+  "docker.io/openziti/zac"
 )
 
 log() { echo "==> $*"; }
@@ -45,6 +46,7 @@ for src in "${IMAGES[@]}"; do
     "docker://${src}:${ZITI_TAG}" \
     "$dest" \
     $DEST_CREDS \
+    --dest-tls-verify="$DEST_TLS_VERIFY" \
     --retry-times 3
 done
 

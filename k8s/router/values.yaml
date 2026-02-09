@@ -1,4 +1,4 @@
-# Base Helm values for openziti/ziti-router.
+# Base Helm values for openziti/ziti-router (chart v2.x).
 # Overlay-specific settings (hosts, ctrl endpoint, images) live in overlays/<cluster>/values.yaml.
 
 edge:
@@ -31,8 +31,11 @@ persistence:
   size: 1Gi
   accessMode: ReadWriteOnce
 
+# ziggy user = uid/gid 2171.
 podSecurityContext:
   fsGroup: 2171
+  runAsUser: 2171
+  runAsGroup: 2171
   runAsNonRoot: true
 
 securityContext:

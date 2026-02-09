@@ -6,7 +6,7 @@ OpenZiti ZTNA deployment for buck-lab k8s. Zero Trust Network Access for interna
 
 - **Controller**: manages identities, policies, PKI. Runs as a StatefulSet with BoltDB on longhorn-r2.
 - **Router**: data-plane edge router. Enrolls against the controller, handles tunneled traffic.
-- **Harbor**: upstream OpenZiti images mirrored to `harbor.buck-lab-k8s.omlabs.org/openziti/` for supply-chain control.
+- **Harbor**: upstream OpenZiti images mirrored to `harbor.buck-lab-k8s.omlabs.org:32632/openziti/` for supply-chain control.
 - **ArgoCD**: optional GitOps sync from this repo's Helm values.
 
 ## Deployment Pipeline
@@ -61,5 +61,5 @@ All secrets stored in Azure Key Vault `omlab-secrets`:
 
 | Remote | URL | Role |
 |--------|-----|------|
-| gitea | `gitea.buck-lab-k8s.omlabs.org/om-labs/ziti` | Source of truth |
+| gitea | `buck-git.omlabs.org/om-labs/ziti` | Source of truth |
 | github | `github.com/Om-Labs/ziti` | Mirror |

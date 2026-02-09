@@ -4,17 +4,18 @@ ctrl:
   endpoint: ziti-controller-ctrl.ziti.svc:443
 
 edge:
-  advertisedHost: ziti-router.buck-lab-k8s.omlabs.org
+  advertisedHost: ziti-router-buck.omlabs.org
 
 linkListeners:
   transport:
-    advertisedHost: ziti-router-transport.buck-lab-k8s.omlabs.org
+    advertisedHost: ziti-router-buck.omlabs.org
 
 persistence:
   storageClass: longhorn-r2
 
 image:
-  repository: harbor.buck-lab-k8s.omlabs.org/openziti/ziti-router
+  repository: harbor.buck-lab-k8s.omlabs.org:32632/openziti/ziti-router
+  tag: "1.7.2"
 
 nodeSelector:
   om-labs.io/storage-node: "true"

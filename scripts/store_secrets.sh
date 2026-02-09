@@ -27,18 +27,12 @@ az keyvault secret set \
 
 # ---------- controller root CA -----------------------------------------------
 
-log "Extracting controller root CA"
-CTRL_POD=$(kubectl -n ziti get pod -l app.kubernetes.io/name=ziti-controller \
-  -o jsonpath='{.items[0].metadata.name}')
-
-ROOT_CA=$(kubectl -n ziti exec "$CTRL_POD" -- \
-  cat /persistent/pki/cas/ctrl-plane-cas.crt 2>/dev/null || \
-  kubectl -n ziti get secret ziti-controller-ctrl-plane-root-cert \
-    -o jsonpath='{.data.tls\.crt}' 2>/dev/null | base64 -d || \
-  echo "EXTRACT_FAILED")
+log "Extracting controller root CA (edge-root-secret)"
+ROOT_CA=$(kubectl -n ziti get secret ziti-controller-edge-root-secret \
+  -o jsonpath='{.data.tls\.crt}' | base64 -d 2>/dev/null || echo "EXTRACT_FAILED")
 
 if [[ "$ROOT_CA" == "EXTRACT_FAILED" ]]; then
-  log "WARNING: Could not extract root CA — check controller PKI paths"
+  log "WARNING: Could not extract root CA — check controller PKI"
 else
   log "Storing ziti-ctrl-root-ca in AKV ($AKV_NAME)"
   az keyvault secret set \
@@ -50,12 +44,9 @@ fi
 
 # ---------- controller signing cert ------------------------------------------
 
-log "Extracting controller signing cert"
-SIGNING_CERT=$(kubectl -n ziti exec "$CTRL_POD" -- \
-  cat /persistent/pki/signers/ctrl-plane-identity.crt 2>/dev/null || \
-  kubectl -n ziti get secret ziti-controller-ctrl-plane-identity-cert \
-    -o jsonpath='{.data.tls\.crt}' 2>/dev/null | base64 -d || \
-  echo "EXTRACT_FAILED")
+log "Extracting controller signing cert (edge-signer-secret)"
+SIGNING_CERT=$(kubectl -n ziti get secret ziti-controller-edge-signer-secret \
+  -o jsonpath='{.data.tls\.crt}' | base64 -d 2>/dev/null || echo "EXTRACT_FAILED")
 
 if [[ "$SIGNING_CERT" == "EXTRACT_FAILED" ]]; then
   log "WARNING: Could not extract signing cert — check controller PKI paths"

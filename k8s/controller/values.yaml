@@ -1,4 +1,4 @@
-# Base Helm values for openziti/ziti-controller.
+# Base Helm values for openziti/ziti-controller (chart v3.x).
 # Overlay-specific settings (hosts, storage, images) live in overlays/<cluster>/values.yaml.
 
 clientApi:
@@ -31,12 +31,11 @@ persistence:
 edgeSignerPki:
   enabled: true
 
-webBindingPki:
-  enabled: true
-
-# Pod hardening.
+# Pod hardening. ziggy user = uid/gid 2171.
 podSecurityContext:
   fsGroup: 2171
+  runAsUser: 2171
+  runAsGroup: 2171
   runAsNonRoot: true
 
 securityContext:
@@ -46,7 +45,3 @@ securityContext:
       - ALL
   seccompProfile:
     type: RuntimeDefault
-
-serviceAccount:
-  create: false
-  name: openziti-sa
