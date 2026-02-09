@@ -1,9 +1,10 @@
-.PHONY: help lint deploy sync-images store-secrets configure-services create-identities patch-coredns
+.PHONY: help lint deploy deploy-metallb sync-images store-secrets configure-services create-identities patch-coredns
 
 help:
 	@echo "Targets:"
 	@echo "  make lint                — YAML + shellcheck"
 	@echo "  make deploy              — Deploy controller + router"
+	@echo "  make deploy-metallb      — Install MetalLB + IP pool"
 	@echo "  make sync-images         — Mirror upstream images to Harbor"
 	@echo "  make store-secrets       — Extract k8s secrets to AKV"
 	@echo "  make configure-services  — Create Ziti services + policies"
@@ -16,6 +17,9 @@ lint:
 
 deploy:
 	scripts/deploy.sh
+
+deploy-metallb:
+	scripts/deploy_metallb.sh
 
 sync-images:
 	scripts/sync_images.sh
