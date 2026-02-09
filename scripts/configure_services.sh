@@ -134,7 +134,7 @@ SERVICES=(
   "mattermost|chat.focusjam.com|443|"
   "minio-api|minio.buck-lab-k8s.omlabs.org|443|"
   "minio-console|minio-console.buck-lab-k8s.omlabs.org|443|"
-  "slidee|slidee.focushive.com|443|"
+  "slidee|dev.slidee.net|443|"
   "vaultwarden|vault.omlabs.org|443|"
   "coder|coder.developerdojo.org|443|"
   "gitea|buck-git.omlabs.org|443|"

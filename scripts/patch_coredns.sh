@@ -17,6 +17,7 @@ set -euo pipefail
 #   auth-buck.omlabs.org      — Keycloak OIDC, needed by Coder/Slidee/ArgoCD
 #   buck-git.omlabs.org       — Gitea, needed by ArgoCD for repo access
 #   argocd-buck.omlabs.org    — ArgoCD, needed by Gitea webhooks
+#   dev.slidee.net            — Slidee, needs OIDC callback resolution
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
@@ -30,6 +31,7 @@ HOSTS=(
   "auth-buck.omlabs.org"
   "buck-git.omlabs.org"
   "argocd-buck.omlabs.org"
+  "dev.slidee.net"
 )
 
 # ---------- helpers ----------------------------------------------------------

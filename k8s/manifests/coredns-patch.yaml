@@ -10,6 +10,7 @@
 #   <INGRESS_CLUSTERIP> auth-buck.omlabs.org      # Keycloak OIDC
 #   <INGRESS_CLUSTERIP> buck-git.omlabs.org       # Gitea
 #   <INGRESS_CLUSTERIP> argocd-buck.omlabs.org    # ArgoCD
+#   <INGRESS_CLUSTERIP> dev.slidee.net            # Slidee
 #
 # Why these three:
 #   - Coder, Slidee, ArgoCD validate tokens against auth-buck.omlabs.org
