@@ -1,0 +1,68 @@
+# ArgoCD Applications for OpenZiti on buck-lab.
+# These use multi-source: upstream Helm chart + our values from Gitea.
+#
+# Prerequisites:
+#   - ArgoCD must have the Gitea repo registered
+#   - ArgoCD must have the openziti Helm repo registered
+#
+# Apply once:  kubectl apply -f k8s/argocd/buck-lab.yaml
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: openziti-controller
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: openziti
+spec:
+  project: default
+  sources:
+    - repoURL: https://docs.openziti.io/helm-charts/
+      chart: ziti-controller
+      targetRevision: "1.*"
+      helm:
+        valueFiles:
+          - $values/k8s/controller/values.yaml
+          - $values/k8s/controller/overlays/buck-lab/values.yaml
+    - repoURL: https://gitea.buck-lab-k8s.omlabs.org/om-labs/ziti.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: ziti
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: openziti-router
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: openziti
+spec:
+  project: default
+  sources:
+    - repoURL: https://docs.openziti.io/helm-charts/
+      chart: ziti-router
+      targetRevision: "0.*"
+      helm:
+        valueFiles:
+          - $values/k8s/router/values.yaml
+          - $values/k8s/router/overlays/buck-lab/values.yaml
+    - repoURL: https://gitea.buck-lab-k8s.omlabs.org/om-labs/ziti.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: ziti
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false

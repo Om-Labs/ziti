@@ -1,0 +1,17 @@
+# Buck-lab controller overrides.
+
+clientApi:
+  advertisedHost: ziti-ctrl.buck-lab-k8s.omlabs.org
+
+ctrlPlane:
+  advertisedHost: ziti-ctrl.buck-lab-k8s.omlabs.org
+
+persistence:
+  storageClass: longhorn-r2
+
+image:
+  repository: harbor.buck-lab-k8s.omlabs.org/openziti/ziti-controller
+
+# Keep controller on storage nodes (persistent BoltDB).
+nodeSelector:
+  om-labs.io/storage-node: "true"

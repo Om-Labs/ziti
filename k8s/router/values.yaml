@@ -1,0 +1,44 @@
+# Base Helm values for openziti/ziti-router.
+# Overlay-specific settings (hosts, ctrl endpoint, images) live in overlays/<cluster>/values.yaml.
+
+edge:
+  advertisedPort: 443
+  service:
+    enabled: true
+    type: ClusterIP
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      kubernetes.io/ingress.allow-http: "false"
+      nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+
+linkListeners:
+  transport:
+    advertisedPort: 443
+    service:
+      enabled: true
+      type: ClusterIP
+    ingress:
+      enabled: true
+      ingressClassName: nginx
+      annotations:
+        kubernetes.io/ingress.allow-http: "false"
+        nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+
+persistence:
+  enabled: true
+  size: 1Gi
+  accessMode: ReadWriteOnce
+
+podSecurityContext:
+  fsGroup: 2171
+  runAsNonRoot: true
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  seccompProfile:
+    type: RuntimeDefault

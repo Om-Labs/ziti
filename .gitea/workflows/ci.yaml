@@ -1,0 +1,61 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request: {}
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+          pip install yamllint
+
+      - name: YAML lint
+        run: yamllint -c .yamllint.yml .
+
+      - name: Shellcheck
+        run: shellcheck scripts/*.sh
+
+  sync-images:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: [lint]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install skopeo
+        run: sudo apt-get update && sudo apt-get install -y skopeo
+
+      - name: Mirror images to Harbor
+        env:
+          HARBOR_HOST: harbor.buck-lab-k8s.omlabs.org
+          HARBOR_USER: ${{ secrets.HARBOR_USER }}
+          HARBOR_PASS: ${{ secrets.HARBOR_PASS }}
+        run: scripts/sync_images.sh
+
+  mirror-to-github:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: [lint]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Push mirror to GitHub
+        env:
+          GITHUB_MIRROR_TOKEN: ${{ secrets.GITHUB_MIRROR_TOKEN }}
+        run: |
+          git remote add github "https://x-access-token:${GITHUB_MIRROR_TOKEN}@github.com/Om-Labs/ziti.git" 2>/dev/null || true
+          git push github main --force
+          git push github --tags --force

@@ -1,0 +1,52 @@
+# Base Helm values for openziti/ziti-controller.
+# Overlay-specific settings (hosts, storage, images) live in overlays/<cluster>/values.yaml.
+
+clientApi:
+  containerPort: 1280
+  advertisedPort: 443
+  service:
+    enabled: true
+    type: ClusterIP
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      kubernetes.io/ingress.allow-http: "false"
+      nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+
+ctrlPlane:
+  advertisedPort: 443
+
+# ZAC admin console served on /zac off the management API.
+console:
+  enabled: true
+
+# BoltDB persistence — required.
+persistence:
+  enabled: true
+  size: 2Gi
+  accessMode: ReadWriteOnce
+
+# PKI — let the chart manage its own CA + intermediates via cert-manager.
+edgeSignerPki:
+  enabled: true
+
+webBindingPki:
+  enabled: true
+
+# Pod hardening.
+podSecurityContext:
+  fsGroup: 2171
+  runAsNonRoot: true
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  seccompProfile:
+    type: RuntimeDefault
+
+serviceAccount:
+  create: false
+  name: openziti-sa
