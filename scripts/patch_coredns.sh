@@ -15,8 +15,7 @@ set -euo pipefail
 #
 # Required entries (all point to nginx ingress ClusterIP):
 #   auth-buck.omlabs.org      — Keycloak OIDC, needed by Coder/Slidee/ArgoCD/GitLab
-#   buck-git.omlabs.org       — Gitea, needed by ArgoCD for repo access
-#   argocd-buck.omlabs.org    — ArgoCD, needed by Gitea/GitLab webhooks
+#   argocd-buck.omlabs.org    — ArgoCD, needed by GitLab webhooks
 #   dev.slidee.net            — Slidee, needs OIDC callback resolution
 #   gitlab-buck.omlabs.org    — GitLab, needed for OIDC callbacks + webhook deliveries
 
@@ -30,7 +29,6 @@ INGRESS_SVC="${INGRESS_SVC:-ingress-nginx-controller}"
 # Hostnames to add (all resolve to the nginx ingress ClusterIP).
 HOSTS=(
   "auth-buck.omlabs.org"
-  "buck-git.omlabs.org"
   "argocd-buck.omlabs.org"
   "dev.slidee.net"
   "gitlab-buck.omlabs.org"

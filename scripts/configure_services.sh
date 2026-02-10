@@ -111,15 +111,7 @@ ziti_exec "create config nginx-ingress-host host.v1 '{
   \"port\": 443
 }'"
 
-# 1b. Gitea SSH — non-HTTP, goes direct to the service.
-log "Creating host.v1 config: gitea-ssh-host"
-ziti_exec "create config gitea-ssh-host host.v1 '{
-  \"protocol\": \"tcp\",
-  \"address\": \"gitea-ssh.gitea.svc\",
-  \"port\": 22
-}'"
-
-# 1c. GitLab SSH — non-HTTP, goes direct to gitlab-shell.
+# 1b. GitLab SSH — non-HTTP, goes direct to gitlab-shell.
 log "Creating host.v1 config: gitlab-ssh-host"
 ziti_exec "create config gitlab-ssh-host host.v1 '{
   \"protocol\": \"tcp\",
@@ -145,10 +137,8 @@ SERVICES=(
   "slidee|dev.slidee.net|443|"
   "vaultwarden|vault.omlabs.org|443|"
   "coder|coder.developerdojo.org|443|"
-  "gitea|buck-git.omlabs.org|443|"
   "argocd|argocd-buck.omlabs.org|443|"
   "gitlab|gitlab-buck.omlabs.org|443|"
-  "gitea-ssh|buck-git.omlabs.org|22|gitea-ssh-host"
   "gitlab-ssh|gitlab-buck.omlabs.org|22|gitlab-ssh-host"
 )
 
@@ -233,4 +223,4 @@ else
 fi
 
 echo ""
-log "Done — expected: 16 configs, 14 services, 2 service-policies, 1 edge-router-policy, 1 service-edge-router-policy"
+log "Done — expected: 13 configs, 12 services, 2 service-policies, 1 edge-router-policy, 1 service-edge-router-policy"
