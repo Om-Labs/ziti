@@ -14,10 +14,11 @@ set -euo pipefail
 #   DRY_RUN=1 scripts/patch_coredns.sh      # show diff only
 #
 # Required entries (all point to nginx ingress ClusterIP):
-#   auth-buck.omlabs.org      — Keycloak OIDC, needed by Coder/Slidee/ArgoCD
+#   auth-buck.omlabs.org      — Keycloak OIDC, needed by Coder/Slidee/ArgoCD/GitLab
 #   buck-git.omlabs.org       — Gitea, needed by ArgoCD for repo access
-#   argocd-buck.omlabs.org    — ArgoCD, needed by Gitea webhooks
+#   argocd-buck.omlabs.org    — ArgoCD, needed by Gitea/GitLab webhooks
 #   dev.slidee.net            — Slidee, needs OIDC callback resolution
+#   gitlab-buck.omlabs.org    — GitLab, needed for OIDC callbacks + webhook deliveries
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
@@ -32,6 +33,7 @@ HOSTS=(
   "buck-git.omlabs.org"
   "argocd-buck.omlabs.org"
   "dev.slidee.net"
+  "gitlab-buck.omlabs.org"
 )
 
 # ---------- helpers ----------------------------------------------------------

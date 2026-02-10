@@ -33,7 +33,7 @@ Client → Ziti Desktop Edge → Ziti overlay → Router (host mode)
   → ingress-nginx-controller.ingress-nginx.svc:443 → backend
 ```
 
-### Services (12 total)
+### Services (14 total)
 
 | Service | Hostname | Port | Notes |
 |---------|----------|------|-------|
@@ -48,13 +48,16 @@ Client → Ziti Desktop Edge → Ziti overlay → Router (host mode)
 | coder | coder.developerdojo.org | 443 | |
 | gitea | buck-git.omlabs.org | 443 | |
 | argocd | argocd-buck.omlabs.org | 443 | ssl-passthrough (gRPC) |
+| gitlab | gitlab-buck.omlabs.org | 443 | GitLab EE (replaces Gitea) |
 | gitea-ssh | buck-git.omlabs.org | 22 | Direct to gitea-ssh.gitea.svc:22 |
+| gitlab-ssh | gitlab-buck.omlabs.org | 22 | Direct to gitlab-gitlab-shell.gitlab.svc:22 |
 
-### Ziti Configs (13)
+### Ziti Configs (16)
 
 - 1 shared `host.v1` (nginx-ingress-host) — routes to nginx ingress ClusterIP:443
 - 1 `host.v1` (gitea-ssh-host) — routes to gitea-ssh.gitea.svc:22
-- 11 `intercept.v1` configs — one per service hostname
+- 1 `host.v1` (gitlab-ssh-host) — routes to gitlab-gitlab-shell.gitlab.svc:22
+- 13 `intercept.v1` configs — one per service hostname
 
 ### Ziti Policies (4)
 
@@ -69,6 +72,7 @@ Required for services that do OIDC validation or cross-service calls:
 - `auth-buck.omlabs.org` → nginx ingress ClusterIP
 - `buck-git.omlabs.org` → nginx ingress ClusterIP
 - `argocd-buck.omlabs.org` → nginx ingress ClusterIP
+- `gitlab-buck.omlabs.org` → nginx ingress ClusterIP
 
 ### Execution Order
 
@@ -114,6 +118,7 @@ ziti-router-buck.omlabs.org → CNAME → <dc-ddns-hostname>
 - Chart versions: ziti-controller 3.0.0 (app 1.7.2), ziti-router 2.0.0 (app 1.7.2)
 - ArgoCD ingress requires `ssl-passthrough: "true"` (gRPC + HTTPS on same port)
 - Gitea SSH goes direct to gitea-ssh.gitea.svc:22, not through nginx
+- GitLab SSH goes direct to gitlab-gitlab-shell.gitlab.svc:22, not through nginx
 
 ## Bugs Encountered During Initial Deploy
 

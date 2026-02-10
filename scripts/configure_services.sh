@@ -47,7 +47,7 @@ ziti_exec() {
     local err
     err=$(cat "$stderr_file")
     rm -f "$stderr_file"
-    if echo "$err" | grep -qi "already exists"; then
+    if echo "$err" | grep -qiE "already exists|must be unique"; then
       log "  (already exists — skipping)"
       return 0
     fi
@@ -119,6 +119,14 @@ ziti_exec "create config gitea-ssh-host host.v1 '{
   \"port\": 22
 }'"
 
+# 1c. GitLab SSH — non-HTTP, goes direct to gitlab-shell.
+log "Creating host.v1 config: gitlab-ssh-host"
+ziti_exec "create config gitlab-ssh-host host.v1 '{
+  \"protocol\": \"tcp\",
+  \"address\": \"gitlab-gitlab-shell.gitlab.svc\",
+  \"port\": 22
+}'"
+
 # ============================================================================
 # Phase 2: Intercept configs + services
 # ============================================================================
@@ -139,7 +147,9 @@ SERVICES=(
   "coder|coder.developerdojo.org|443|"
   "gitea|buck-git.omlabs.org|443|"
   "argocd|argocd-buck.omlabs.org|443|"
+  "gitlab|gitlab-buck.omlabs.org|443|"
   "gitea-ssh|buck-git.omlabs.org|22|gitea-ssh-host"
+  "gitlab-ssh|gitlab-buck.omlabs.org|22|gitlab-ssh-host"
 )
 
 for entry in "${SERVICES[@]}"; do
@@ -223,4 +233,4 @@ else
 fi
 
 echo ""
-log "Done — expected: 13 configs, 12 services, 2 service-policies, 1 edge-router-policy, 1 service-edge-router-policy"
+log "Done — expected: 16 configs, 14 services, 2 service-policies, 1 edge-router-policy, 1 service-edge-router-policy"
