@@ -6,7 +6,7 @@ GitOps repo for OpenZiti ZTNA on buck-lab k8s. Controller + router deployed via 
 
 ## Deployment Strategy
 
-Gitea (source of truth) -> Gitea Actions CI (lint + image sync to Harbor) -> ArgoCD or deploy script -> k8s. GitHub is a push mirror.
+GitHub (source of truth) -> CI (lint + image sync to Harbor) -> ArgoCD or deploy script -> k8s.
 
 ## Key Patterns
 
@@ -33,7 +33,7 @@ Client → Ziti Desktop Edge → Ziti overlay → Router (host mode)
   → ingress-nginx-controller.ingress-nginx.svc:443 → backend
 ```
 
-### Services (13 total)
+### Internal Services (12, attribute: #internal-services)
 
 | Service | Hostname | Port | Notes |
 |---------|----------|------|-------|
@@ -48,27 +48,37 @@ Client → Ziti Desktop Edge → Ziti overlay → Router (host mode)
 | coder | developerdojo.org | 443 | Main Coder UI |
 | coder-wildcard | *.developerdojo.org | 443 | KasmVNC/filebrowser subdomains |
 | argocd | argocd-buck.omlabs.org | 443 | ssl-passthrough (gRPC) |
-| gitlab | gitlab-buck.omlabs.org | 443 | GitLab EE |
-| gitlab-ssh | gitlab-buck.omlabs.org | 22 | Direct to gitlab-gitlab-shell.gitlab.svc:22 |
+| gitlab | gitlab-buck.omlabs.org | 443 | GitLab EE (HTTPS only, no SSH) |
 
-### Ziti Configs (15)
+### OpenClaw Services (5, attribute: #openclaw-services)
+
+| Service | Hostname | Port | Notes |
+|---------|----------|------|-------|
+| openclaw-dashboard | agents-buck.omlabs.org | 443 | Dashboard UI |
+| openclaw-admin | admin.focuschef.com | 443 | Admin panel |
+| openclaw-hira | hira-buck.omlabs.org | 443 | HR agent |
+| openclaw-lisa | lisa-buck.omlabs.org | 443 | Recruitment agent |
+| openclaw-cody | cody-buck.omlabs.org | 443 | Engineering agent |
+
+### Ziti Configs (18)
 
 - 1 shared `host.v1` (nginx-ingress-host) — routes to nginx ingress ClusterIP:443
-- 1 `host.v1` (gitlab-ssh-host) — routes to gitlab-gitlab-shell.gitlab.svc:22
-- 13 `intercept.v1` configs — one per service hostname
+- 17 `intercept.v1` configs — one per service hostname
 
-### Ziti Policies (4)
+### Ziti Policies (7)
 
 - **bind-all-services** (Bind) — `#routers` → `#internal-services`
+- **bind-openclaw** (Bind) — `#routers` → `#openclaw-services`
 - **dial-all-services** (Dial) — `#employees` → `#internal-services`
+- **dial-openclaw** (Dial) — `#openclaw-admin` → `#openclaw-services`
 - **all-employees-all-routers** (edge-router-policy) — `#employees` → `#all` routers
 - **all-services-all-routers** (service-edge-router-policy) — `#internal-services` → `#all` routers
+- **openclaw-all-routers** (service-edge-router-policy) — `#openclaw-services` → `#all` routers
 
 ### CoreDNS Entries (in-cluster resolution)
 
 Required for services that do OIDC validation or cross-service calls:
 - `auth-buck.omlabs.org` → nginx ingress ClusterIP
-- `buck-git.omlabs.org` → nginx ingress ClusterIP
 - `argocd-buck.omlabs.org` → nginx ingress ClusterIP
 - `gitlab-buck.omlabs.org` → nginx ingress ClusterIP
 
@@ -115,7 +125,6 @@ ziti-router-buck.omlabs.org → CNAME → <dc-ddns-hostname>
 - Router enrollment JWT is one-time; the k8s secret preserves it for re-deploys
 - Chart versions: ziti-controller 3.0.0 (app 1.7.2), ziti-router 2.0.0 (app 1.7.2)
 - ArgoCD ingress requires `ssl-passthrough: "true"` (gRPC + HTTPS on same port)
-- GitLab SSH goes direct to gitlab-gitlab-shell.gitlab.svc:22, not through nginx
 - Coder wildcard (`*.developerdojo.org`) enables subdomain-based workspace apps (KasmVNC, filebrowser)
 
 ## Bugs Encountered During Initial Deploy

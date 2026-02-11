@@ -111,14 +111,6 @@ ziti_exec "create config nginx-ingress-host host.v1 '{
   \"port\": 443
 }'"
 
-# 1b. GitLab SSH — non-HTTP, goes direct to gitlab-shell.
-log "Creating host.v1 config: gitlab-ssh-host"
-ziti_exec "create config gitlab-ssh-host host.v1 '{
-  \"protocol\": \"tcp\",
-  \"address\": \"gitlab-gitlab-shell.gitlab.svc\",
-  \"port\": 22
-}'"
-
 # ============================================================================
 # Phase 2: Intercept configs + services
 # ============================================================================
@@ -140,7 +132,6 @@ SERVICES=(
   "coder-wildcard|*.developerdojo.org|443|"
   "argocd|argocd-buck.omlabs.org|443|"
   "gitlab|gitlab-buck.omlabs.org|443|"
-  "gitlab-ssh|gitlab-buck.omlabs.org|22|gitlab-ssh-host"
 )
 
 # OpenClaw services — restricted to #openclaw-admin only, NOT #internal-services.
@@ -269,4 +260,4 @@ else
 fi
 
 echo ""
-log "Done — expected: 17 configs, 15 services, 2 service-policies, 1 edge-router-policy, 1 service-edge-router-policy"
+log "Done — expected: 18 configs, 17 services, 4 service-policies, 1 edge-router-policy, 2 service-edge-router-policies"
