@@ -141,6 +141,8 @@ SERVICES=(
   "argocd|argocd-buck.omlabs.org|443|"
   "gitlab|gitlab-buck.omlabs.org|443|"
   "gitlab-ssh|gitlab-buck.omlabs.org|22|gitlab-ssh-host"
+  "openclaw-agents|agents-buck.omlabs.org|443|"
+  "openclaw-admin|admin.focuschef.com|443|"
 )
 
 for entry in "${SERVICES[@]}"; do
@@ -224,4 +226,4 @@ else
 fi
 
 echo ""
-log "Done — expected: 15 configs, 13 services, 2 service-policies, 1 edge-router-policy, 1 service-edge-router-policy"
+log "Done — expected: 17 configs, 15 services, 2 service-policies, 1 edge-router-policy, 1 service-edge-router-policy"
