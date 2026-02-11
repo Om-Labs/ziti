@@ -141,8 +141,13 @@ SERVICES=(
   "argocd|argocd-buck.omlabs.org|443|"
   "gitlab|gitlab-buck.omlabs.org|443|"
   "gitlab-ssh|gitlab-buck.omlabs.org|22|gitlab-ssh-host"
-  "openclaw-agents|agents-buck.omlabs.org|443|"
-  "openclaw-admin|admin.focuschef.com|443|"
+)
+
+# OpenClaw services — restricted to #openclaw-admin only, NOT #internal-services.
+# Format: "service_name|intercept_hostname|port|host_config|service_attribute"
+OPENCLAW_SERVICES=(
+  "openclaw-agents|agents-buck.omlabs.org|443||openclaw-services"
+  "openclaw-admin|admin.focuschef.com|443||openclaw-services"
 )
 
 for entry in "${SERVICES[@]}"; do
@@ -161,6 +166,24 @@ for entry in "${SERVICES[@]}"; do
   ziti_exec "create service ${name} \
     -c ${intercept_cfg},${host_cfg} \
     -a internal-services"
+done
+
+for entry in "${OPENCLAW_SERVICES[@]}"; do
+  IFS='|' read -r name hostname port host_cfg svc_attr <<< "$entry"
+  host_cfg="${host_cfg:-nginx-ingress-host}"
+  intercept_cfg="${name}-intercept"
+
+  log "Creating intercept config + service: $name ($hostname:$port) [restricted: #$svc_attr]"
+
+  ziti_exec "create config ${intercept_cfg} intercept.v1 '{
+    \"protocols\": [\"tcp\"],
+    \"addresses\": [\"${hostname}\"],
+    \"portRanges\": [{\"low\": ${port}, \"high\": ${port}}]
+  }'"
+
+  ziti_exec "create service ${name} \
+    -c ${intercept_cfg},${host_cfg} \
+    -a ${svc_attr}"
 done
 
 # ============================================================================
@@ -183,10 +206,22 @@ ziti_exec "create service-policy bind-all-services Bind \
   --service-roles '#internal-services' \
   --semantic AnyOf"
 
+log "Creating service-policy: bind-openclaw (Bind)"
+ziti_exec "create service-policy bind-openclaw Bind \
+  --identity-roles '#routers' \
+  --service-roles '#openclaw-services' \
+  --semantic AnyOf"
+
 log "Creating service-policy: dial-all-services (Dial)"
 ziti_exec "create service-policy dial-all-services Dial \
   --identity-roles '#employees' \
   --service-roles '#internal-services' \
+  --semantic AnyOf"
+
+log "Creating service-policy: dial-openclaw (Dial — matthew only)"
+ziti_exec "create service-policy dial-openclaw Dial \
+  --identity-roles '#openclaw-admin' \
+  --service-roles '#openclaw-services' \
   --semantic AnyOf"
 
 log "Creating edge-router-policy: all-employees-all-routers"
@@ -197,6 +232,11 @@ ziti_exec "create edge-router-policy all-employees-all-routers \
 log "Creating service-edge-router-policy: all-services-all-routers"
 ziti_exec "create service-edge-router-policy all-services-all-routers \
   --service-roles '#internal-services' \
+  --edge-router-roles '#all'"
+
+log "Creating service-edge-router-policy: openclaw-all-routers"
+ziti_exec "create service-edge-router-policy openclaw-all-routers \
+  --service-roles '#openclaw-services' \
   --edge-router-roles '#all'"
 
 # ============================================================================
