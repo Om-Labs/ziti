@@ -136,7 +136,8 @@ SERVICES=(
   "minio-console|minio-console.buck-lab-k8s.omlabs.org|443|"
   "slidee|dev.slidee.net|443|"
   "vaultwarden|vault.omlabs.org|443|"
-  "coder|coder.developerdojo.org|443|"
+  "coder|developerdojo.org|443|"
+  "coder-wildcard|*.developerdojo.org|443|"
   "argocd|argocd-buck.omlabs.org|443|"
   "gitlab|gitlab-buck.omlabs.org|443|"
   "gitlab-ssh|gitlab-buck.omlabs.org|22|gitlab-ssh-host"
@@ -223,4 +224,4 @@ else
 fi
 
 echo ""
-log "Done — expected: 13 configs, 12 services, 2 service-policies, 1 edge-router-policy, 1 service-edge-router-policy"
+log "Done — expected: 15 configs, 13 services, 2 service-policies, 1 edge-router-policy, 1 service-edge-router-policy"

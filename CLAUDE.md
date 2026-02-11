@@ -33,7 +33,7 @@ Client → Ziti Desktop Edge → Ziti overlay → Router (host mode)
   → ingress-nginx-controller.ingress-nginx.svc:443 → backend
 ```
 
-### Services (14 total)
+### Services (13 total)
 
 | Service | Hostname | Port | Notes |
 |---------|----------|------|-------|
@@ -45,17 +45,15 @@ Client → Ziti Desktop Edge → Ziti overlay → Router (host mode)
 | minio-console | minio-console.buck-lab-k8s.omlabs.org | 443 | |
 | slidee | dev.slidee.net | 443 | |
 | vaultwarden | vault.omlabs.org | 443 | |
-| coder | coder.developerdojo.org | 443 | |
-| gitea | buck-git.omlabs.org | 443 | |
+| coder | developerdojo.org | 443 | Main Coder UI |
+| coder-wildcard | *.developerdojo.org | 443 | KasmVNC/filebrowser subdomains |
 | argocd | argocd-buck.omlabs.org | 443 | ssl-passthrough (gRPC) |
-| gitlab | gitlab-buck.omlabs.org | 443 | GitLab EE (replaces Gitea) |
-| gitea-ssh | buck-git.omlabs.org | 22 | Direct to gitea-ssh.gitea.svc:22 |
+| gitlab | gitlab-buck.omlabs.org | 443 | GitLab EE |
 | gitlab-ssh | gitlab-buck.omlabs.org | 22 | Direct to gitlab-gitlab-shell.gitlab.svc:22 |
 
-### Ziti Configs (16)
+### Ziti Configs (15)
 
 - 1 shared `host.v1` (nginx-ingress-host) — routes to nginx ingress ClusterIP:443
-- 1 `host.v1` (gitea-ssh-host) — routes to gitea-ssh.gitea.svc:22
 - 1 `host.v1` (gitlab-ssh-host) — routes to gitlab-gitlab-shell.gitlab.svc:22
 - 13 `intercept.v1` configs — one per service hostname
 
@@ -117,8 +115,8 @@ ziti-router-buck.omlabs.org → CNAME → <dc-ddns-hostname>
 - Router enrollment JWT is one-time; the k8s secret preserves it for re-deploys
 - Chart versions: ziti-controller 3.0.0 (app 1.7.2), ziti-router 2.0.0 (app 1.7.2)
 - ArgoCD ingress requires `ssl-passthrough: "true"` (gRPC + HTTPS on same port)
-- Gitea SSH goes direct to gitea-ssh.gitea.svc:22, not through nginx
 - GitLab SSH goes direct to gitlab-gitlab-shell.gitlab.svc:22, not through nginx
+- Coder wildcard (`*.developerdojo.org`) enables subdomain-based workspace apps (KasmVNC, filebrowser)
 
 ## Bugs Encountered During Initial Deploy
 
