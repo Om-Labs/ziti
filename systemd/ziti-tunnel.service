@@ -1,0 +1,46 @@
+# OpenZiti tunnel — tproxy mode.
+#
+# Intercepts DNS + TCP for enrolled services, routing traffic through the
+# Ziti overlay. Runs as root (tproxy requires NET_ADMIN + raw sockets).
+#
+# Install:
+#   sudo cp systemd/ziti-tunnel.service /etc/systemd/system/
+#   sudo mkdir -p /etc/ziti/identities
+#   sudo cp <identity>.json /etc/ziti/identities/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now ziti-tunnel
+#
+# Or use: scripts/install_tunnel_service.sh
+
+[Unit]
+Description=OpenZiti Tunnel (tproxy)
+Documentation=https://openziti.io/docs/reference/tunnelers/linux/
+After=network-online.target systemd-resolved.service
+Wants=network-online.target
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+
+# Clean stale iptables rules from a previous crash.
+ExecStartPre=-/usr/sbin/iptables -t mangle -F NF-INTERCEPT
+ExecStartPre=-/usr/sbin/iptables -t mangle -D PREROUTING -j NF-INTERCEPT
+ExecStartPre=-/usr/sbin/iptables -t mangle -X NF-INTERCEPT
+
+# Use 100.64.0.0/10 (CGNAT range) for DNS intercepts so we don't
+# collide with systemd-resolved on 127.0.0.53.
+ExecStart=/usr/bin/ziti tunnel tproxy \
+  -i /etc/ziti/identities/matthew-laptop.json \
+  --dnsSvcIpRange 100.64.0.1/10
+
+Restart=on-failure
+RestartSec=5
+
+# Logging to journal (viewable via: journalctl -u ziti-tunnel -f)
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=ziti-tunnel
+
+[Install]
+WantedBy=multi-user.target

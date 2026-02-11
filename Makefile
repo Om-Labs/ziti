@@ -1,4 +1,4 @@
-.PHONY: help lint deploy deploy-metallb sync-images store-secrets configure-services create-identities patch-coredns
+.PHONY: help lint deploy deploy-metallb sync-images store-secrets configure-services create-identities patch-coredns install-tunnel
 
 help:
 	@echo "Targets:"
@@ -10,6 +10,7 @@ help:
 	@echo "  make configure-services  — Create Ziti services + policies"
 	@echo "  make create-identities   — Create employee identities (NAMES='a b')"
 	@echo "  make patch-coredns       — Add service hostnames to CoreDNS"
+	@echo "  make install-tunnel      — Install ziti-tunnel systemd service (sudo)"
 
 lint:
 	shellcheck scripts/*.sh
@@ -35,3 +36,6 @@ create-identities:
 
 patch-coredns:
 	scripts/patch_coredns.sh
+
+install-tunnel:
+	sudo scripts/install_tunnel_service.sh
