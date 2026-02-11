@@ -146,8 +146,11 @@ SERVICES=(
 # OpenClaw services — restricted to #openclaw-admin only, NOT #internal-services.
 # Format: "service_name|intercept_hostname|port|host_config|service_attribute"
 OPENCLAW_SERVICES=(
-  "openclaw-agents|agents-buck.omlabs.org|443||openclaw-services"
+  "openclaw-dashboard|agents-buck.omlabs.org|443||openclaw-services"
   "openclaw-admin|admin.focuschef.com|443||openclaw-services"
+  "openclaw-hira|hira-buck.omlabs.org|443||openclaw-services"
+  "openclaw-lisa|lisa-buck.omlabs.org|443||openclaw-services"
+  "openclaw-cody|cody-buck.omlabs.org|443||openclaw-services"
 )
 
 for entry in "${SERVICES[@]}"; do
