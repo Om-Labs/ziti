@@ -18,6 +18,7 @@ set -euo pipefail
 #   argocd-buck.omlabs.org    — ArgoCD, needed by GitLab webhooks
 #   dev.slidee.net            — Slidee, needs OIDC callback resolution
 #   gitlab-buck.omlabs.org    — GitLab, needed for OIDC callbacks + webhook deliveries
+#   chat.focusjam.com         — Mattermost, needed by OpenClaw agents (no public DNS)
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
@@ -32,6 +33,7 @@ HOSTS=(
   "argocd-buck.omlabs.org"
   "dev.slidee.net"
   "gitlab-buck.omlabs.org"
+  "chat.focusjam.com"
 )
 
 # ---------- helpers ----------------------------------------------------------
