@@ -144,12 +144,32 @@ OPENCLAW_SERVICES=(
   "openclaw-cody|cody-buck.omlabs.org|443||openclaw-services"
 )
 
+# Service-to-group mapping for role-based access:
+#   core-services:    member group — everyone gets these
+#   dev-services:     engineering group — dev tools
+#   cluster-services: infra-admin group — cluster management
+declare -A SERVICE_GROUP=(
+  [harbor]=dev-services
+  [keycloak]=core-services
+  [longhorn]=cluster-services
+  [mattermost]=core-services
+  [minio-api]=cluster-services
+  [minio-console]=cluster-services
+  [slidee]=core-services
+  [vaultwarden]=core-services
+  [coder]=core-services
+  [coder-wildcard]=core-services
+  [argocd]=dev-services
+  [gitlab]=dev-services
+)
+
 for entry in "${SERVICES[@]}"; do
   IFS='|' read -r name hostname port host_cfg <<< "$entry"
   host_cfg="${host_cfg:-nginx-ingress-host}"
   intercept_cfg="${name}-intercept"
+  svc_group="${SERVICE_GROUP[$name]:-core-services}"
 
-  log "Creating intercept config + service: $name ($hostname:$port)"
+  log "Creating intercept config + service: $name ($hostname:$port) [#${svc_group}]"
 
   ziti_exec "create config ${intercept_cfg} intercept.v1 '{
     \"protocols\": [\"tcp\"],
@@ -159,7 +179,7 @@ for entry in "${SERVICES[@]}"; do
 
   ziti_exec "create service ${name} \
     -c ${intercept_cfg},${host_cfg} \
-    -a internal-services"
+    -a ${svc_group}"
 done
 
 for entry in "${OPENCLAW_SERVICES[@]}"; do
@@ -194,10 +214,23 @@ ziti_exec "update identity ${ROUTER_IDENTITY} -a routers"
 
 log "--- Phase 4: Policies ---"
 
-log "Creating service-policy: bind-all-services (Bind)"
-ziti_exec "create service-policy bind-all-services Bind \
+# --- Bind policies (router → services) ---
+log "Creating service-policy: bind-core-services (Bind)"
+ziti_exec "create service-policy bind-core-services Bind \
   --identity-roles '#routers' \
-  --service-roles '#internal-services' \
+  --service-roles '#core-services' \
+  --semantic AnyOf"
+
+log "Creating service-policy: bind-dev-services (Bind)"
+ziti_exec "create service-policy bind-dev-services Bind \
+  --identity-roles '#routers' \
+  --service-roles '#dev-services' \
+  --semantic AnyOf"
+
+log "Creating service-policy: bind-cluster-services (Bind)"
+ziti_exec "create service-policy bind-cluster-services Bind \
+  --identity-roles '#routers' \
+  --service-roles '#cluster-services' \
   --semantic AnyOf"
 
 log "Creating service-policy: bind-openclaw (Bind)"
@@ -206,26 +239,51 @@ ziti_exec "create service-policy bind-openclaw Bind \
   --service-roles '#openclaw-services' \
   --semantic AnyOf"
 
-log "Creating service-policy: dial-all-services (Dial)"
-ziti_exec "create service-policy dial-all-services Dial \
-  --identity-roles '#employees' \
-  --service-roles '#internal-services' \
+# --- Dial policies (group → services) ---
+log "Creating service-policy: dial-core-services (Dial — all members)"
+ziti_exec "create service-policy dial-core-services Dial \
+  --identity-roles '#member' \
+  --service-roles '#core-services' \
   --semantic AnyOf"
 
-log "Creating service-policy: dial-openclaw (Dial — matthew only)"
+log "Creating service-policy: dial-dev-services (Dial — engineers)"
+ziti_exec "create service-policy dial-dev-services Dial \
+  --identity-roles '#engineering' \
+  --service-roles '#dev-services' \
+  --semantic AnyOf"
+
+log "Creating service-policy: dial-cluster-services (Dial — infra admins)"
+ziti_exec "create service-policy dial-cluster-services Dial \
+  --identity-roles '#infra-admin' \
+  --service-roles '#cluster-services' \
+  --semantic AnyOf"
+
+log "Creating service-policy: dial-openclaw (Dial — openclaw admins)"
 ziti_exec "create service-policy dial-openclaw Dial \
   --identity-roles '#openclaw-admin' \
   --service-roles '#openclaw-services' \
   --semantic AnyOf"
 
-log "Creating edge-router-policy: all-employees-all-routers"
-ziti_exec "create edge-router-policy all-employees-all-routers \
-  --identity-roles '#employees' \
+# --- Edge router policies ---
+log "Creating edge-router-policy: all-members-all-routers"
+ziti_exec "create edge-router-policy all-members-all-routers \
+  --identity-roles '#member' \
   --edge-router-roles '#all'"
 
-log "Creating service-edge-router-policy: all-services-all-routers"
-ziti_exec "create service-edge-router-policy all-services-all-routers \
-  --service-roles '#internal-services' \
+# --- Service edge router policies ---
+log "Creating service-edge-router-policy: core-all-routers"
+ziti_exec "create service-edge-router-policy core-all-routers \
+  --service-roles '#core-services' \
+  --edge-router-roles '#all'"
+
+log "Creating service-edge-router-policy: dev-all-routers"
+ziti_exec "create service-edge-router-policy dev-all-routers \
+  --service-roles '#dev-services' \
+  --edge-router-roles '#all'"
+
+log "Creating service-edge-router-policy: cluster-all-routers"
+ziti_exec "create service-edge-router-policy cluster-all-routers \
+  --service-roles '#cluster-services' \
   --edge-router-roles '#all'"
 
 log "Creating service-edge-router-policy: openclaw-all-routers"
@@ -260,4 +318,4 @@ else
 fi
 
 echo ""
-log "Done — expected: 18 configs, 17 services, 4 service-policies, 1 edge-router-policy, 2 service-edge-router-policies"
+log "Done — expected: 18 configs, 17 services, 8 service-policies, 1 edge-router-policy, 4 service-edge-router-policies"
