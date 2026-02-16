@@ -132,6 +132,8 @@ SERVICES=(
   "coder-wildcard|*.developerdojo.org|443|"
   "argocd|argocd-buck.omlabs.org|443|"
   "gitlab|gitlab-buck.omlabs.org|443|"
+  "studio-hardmagic|studio.hardmagic.com|443|"
+  "studio-hypersight|studio.hypersight.net|443|"
 )
 
 # OpenClaw services — restricted to #openclaw-admin only, NOT #internal-services.
@@ -161,6 +163,8 @@ declare -A SERVICE_GROUP=(
   [coder-wildcard]=core-services
   [argocd]=dev-services
   [gitlab]=dev-services
+  [studio-hardmagic]=core-services
+  [studio-hypersight]=core-services
 )
 
 for entry in "${SERVICES[@]}"; do
@@ -318,4 +322,4 @@ else
 fi
 
 echo ""
-log "Done — expected: 18 configs, 17 services, 8 service-policies, 1 edge-router-policy, 4 service-edge-router-policies"
+log "Done — expected: 20 configs, 19 services, 8 service-policies, 1 edge-router-policy, 4 service-edge-router-policies"

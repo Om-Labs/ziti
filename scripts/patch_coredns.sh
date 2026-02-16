@@ -34,6 +34,8 @@ HOSTS=(
   "dev.slidee.net"
   "gitlab-buck.omlabs.org"
   "chat.focusjam.com"
+  "studio.hardmagic.com"
+  "studio.hypersight.net"
 )
 
 # ---------- helpers ----------------------------------------------------------
