@@ -19,6 +19,9 @@ set -euo pipefail
 #   dev.slidee.net            — Slidee, needs OIDC callback resolution
 #   gitlab-buck.omlabs.org    — GitLab, needed for OIDC callbacks + webhook deliveries
 #   chat.focusjam.com         — Mattermost, needed by OpenClaw agents (no public DNS)
+#   pbx.focuscell.org         — FreeSWITCH WebRTC, VoIP softphone
+#   admin.focuscell.org       — VoIP admin panel
+#   api.focuscell.org         — VoIP API + SignalWire SMS webhooks
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
@@ -36,6 +39,9 @@ HOSTS=(
   "chat.focusjam.com"
   "studio.hardmagic.com"
   "studio.hypersight.net"
+  "pbx.focuscell.org"
+  "admin.focuscell.org"
+  "api.focuscell.org"
 )
 
 # ---------- helpers ----------------------------------------------------------
