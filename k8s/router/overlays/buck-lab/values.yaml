@@ -19,3 +19,6 @@ image:
 
 nodeSelector:
   om-labs.io/storage-node: "true"
+
+imagePullSecrets:
+  - name: harbor-pull-secret
