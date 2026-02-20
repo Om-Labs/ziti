@@ -84,16 +84,15 @@ Required for services that do OIDC validation or cross-service calls:
 
 ### Execution Order
 
-1. Apply missing ingresses: `kubectl apply -f k8s/manifests/gitea-ingress.yaml -f k8s/manifests/argocd-ingress.yaml`
-2. Deploy MetalLB: `make deploy-metallb`
-3. Patch CoreDNS: `scripts/patch_coredns.sh`
-4. Configure services: `scripts/configure_services.sh`
-5. Create DNS CNAMEs: `ziti-ctrl-buck` + `ziti-router-buck` → DC DDNS hostname (CF grey cloud)
-6. Configure router port forward: WAN 443 → MetalLB IP:443
-7. Create test identities: `scripts/create_identities.sh <name>`
-8. Verify from enrolled laptop + mobile, then create remaining identities
-9. Remove Cloudflare tunnel
-10. (Later) Switch cert-manager to DNS-01
+1. Deploy MetalLB: `make deploy-metallb`
+2. Patch CoreDNS: `scripts/patch_coredns.sh`
+3. Configure services: `scripts/configure_services.sh`
+4. Create DNS CNAMEs: `ziti-ctrl-buck` + `ziti-router-buck` → DC DDNS hostname (CF grey cloud)
+5. Configure router port forward: WAN 443 → MetalLB IP:443
+6. Create test identities: `scripts/create_identities.sh <name>`
+7. Verify from enrolled laptop + mobile, then create remaining identities
+8. Remove Cloudflare tunnel
+9. (Later) Switch cert-manager to DNS-01
 
 ## Load Balancer (MetalLB)
 
