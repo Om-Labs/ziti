@@ -81,9 +81,11 @@ if [[ -z "$DRY_RUN" ]]; then
     -o jsonpath='{.data.admin-password}' | base64 -d)
 
   log "Logging in to controller ($CTRL_POD)"
-  kubectl -n ziti exec "$CTRL_POD" -- sh -c \
+  if ! kubectl -n ziti exec "$CTRL_POD" -- sh -c \
     "ziti edge login localhost:${CTRL_MGMT_PORT} -u admin -p '${ADMIN_PW}' --yes" \
-    >/dev/null 2>&1
+    >/dev/null 2>&1; then
+    warn "Admin password login failed; continuing with existing CLI identity context"
+  fi
 
   # Verify the router identity exists before we try to tag it.
   if ! kubectl -n ziti exec "$CTRL_POD" -- sh -c \
