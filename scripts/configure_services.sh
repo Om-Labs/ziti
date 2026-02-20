@@ -104,10 +104,10 @@ fi
 log "--- Phase 1: Configs ---"
 
 # 1a. Shared host.v1 — all HTTPS services route through Envoy Gateway proxy.
-log "Creating host.v1 config: nginx-ingress-host"
-ziti_exec "create config nginx-ingress-host host.v1 '{
+log "Creating host.v1 config: ingress-host"
+ziti_exec "create config ingress-host host.v1 '{
   \"protocol\": \"tcp\",
-  \"address\": \"envoy-envoy-gateway-system-main-b3b376e9.envoy-gateway-system.svc\",
+  \"address\": \"envoy-main-lan-vip.envoy-gateway-system.svc\",
   \"port\": 443
 }'"
 
@@ -118,22 +118,27 @@ ziti_exec "create config nginx-ingress-host host.v1 '{
 log "--- Phase 2: Intercept configs + services ---"
 
 # Format: "service_name|intercept_hostname|port|host_config"
-# host_config defaults to nginx-ingress-host (routes to Envoy Gateway) when empty.
+# host_config defaults to ingress-host (routes to Envoy Gateway) when empty.
 SERVICES=(
   "harbor|harbor.buck-lab-k8s.omlabs.org|443|"
   "keycloak|auth-buck.omlabs.org|443|"
   "longhorn|longhorn.buck-lab-k8s.omlabs.org|443|"
   "mattermost|chat.focusjam.com|443|"
-  "minio-api|minio.buck-lab-k8s.omlabs.org|443|"
-  "minio-console|minio-console.buck-lab-k8s.omlabs.org|443|"
+  "seaweedfs-api|seaweedfs.buck-lab-k8s.omlabs.org|443|"
+  "seaweedfs-console|seaweedfs-console.buck-lab-k8s.omlabs.org|443|"
   "slidee|dev.slidee.net|443|"
   "vaultwarden|vault.omlabs.org|443|"
   "coder|developerdojo.org|443|"
   "coder-wildcard|*.developerdojo.org|443|"
   "argocd|argocd-buck.omlabs.org|443|"
-  "gitlab|gitlab-buck.omlabs.org|443|"
+  "gitlab|git.developerdojo.org|443|"
+  "fleet|fleet.focuspass.com|443|"
   "studio-hardmagic|studio.hardmagic.com|443|"
+  "api-studio-hardmagic|api.studio.hardmagic.com|443|"
   "studio-hypersight|studio.hypersight.net|443|"
+  "pbx-admin|admin.focuscell.org|443|"
+  "pbx-webrtc|pbx.focuscell.org|443|"
+  "pbx-api|api.focuscell.org|443|"
 )
 
 # OpenClaw services — restricted to #openclaw-admin only, NOT #internal-services.
@@ -155,21 +160,26 @@ declare -A SERVICE_GROUP=(
   [keycloak]=core-services
   [longhorn]=cluster-services
   [mattermost]=core-services
-  [minio-api]=cluster-services
-  [minio-console]=cluster-services
+  [seaweedfs-api]=cluster-services
+  [seaweedfs-console]=cluster-services
   [slidee]=core-services
   [vaultwarden]=core-services
   [coder]=core-services
   [coder-wildcard]=core-services
   [argocd]=dev-services
   [gitlab]=dev-services
+  [fleet]=core-services
   [studio-hardmagic]=core-services
+  [api-studio-hardmagic]=core-services
   [studio-hypersight]=core-services
+  [pbx-admin]=voip-services
+  [pbx-webrtc]=voip-services
+  [pbx-api]=voip-services
 )
 
 for entry in "${SERVICES[@]}"; do
   IFS='|' read -r name hostname port host_cfg <<< "$entry"
-  host_cfg="${host_cfg:-nginx-ingress-host}"
+  host_cfg="${host_cfg:-ingress-host}"
   intercept_cfg="${name}-intercept"
   svc_group="${SERVICE_GROUP[$name]:-core-services}"
 
@@ -188,7 +198,7 @@ done
 
 for entry in "${OPENCLAW_SERVICES[@]}"; do
   IFS='|' read -r name hostname port host_cfg svc_attr <<< "$entry"
-  host_cfg="${host_cfg:-nginx-ingress-host}"
+  host_cfg="${host_cfg:-ingress-host}"
   intercept_cfg="${name}-intercept"
 
   log "Creating intercept config + service: $name ($hostname:$port) [restricted: #$svc_attr]"
@@ -243,6 +253,12 @@ ziti_exec "create service-policy bind-openclaw Bind \
   --service-roles '#openclaw-services' \
   --semantic AnyOf"
 
+log "Creating service-policy: bind-voip-services (Bind)"
+ziti_exec "create service-policy bind-voip-services Bind \
+  --identity-roles '#routers' \
+  --service-roles '#voip-services' \
+  --semantic AnyOf"
+
 # --- Dial policies (group → services) ---
 log "Creating service-policy: dial-core-services (Dial — all members)"
 ziti_exec "create service-policy dial-core-services Dial \
@@ -266,6 +282,12 @@ log "Creating service-policy: dial-openclaw (Dial — openclaw admins)"
 ziti_exec "create service-policy dial-openclaw Dial \
   --identity-roles '#openclaw-admin' \
   --service-roles '#openclaw-services' \
+  --semantic AnyOf"
+
+log "Creating service-policy: dial-voip-services (Dial — all members)"
+ziti_exec "create service-policy dial-voip-services Dial \
+  --identity-roles '#member' \
+  --service-roles '#voip-services' \
   --semantic AnyOf"
 
 # --- Edge router policies ---
@@ -295,6 +317,11 @@ ziti_exec "create service-edge-router-policy openclaw-all-routers \
   --service-roles '#openclaw-services' \
   --edge-router-roles '#all'"
 
+log "Creating service-edge-router-policy: voip-all-routers"
+ziti_exec "create service-edge-router-policy voip-all-routers \
+  --service-roles '#voip-services' \
+  --edge-router-roles '#all'"
+
 # ============================================================================
 # Phase 5: Verification
 # ============================================================================
@@ -322,4 +349,4 @@ else
 fi
 
 echo ""
-log "Done — expected: 20 configs, 19 services, 8 service-policies, 1 edge-router-policy, 4 service-edge-router-policies"
+log "Done — expected: 25 configs, 24 services, 10 service-policies, 1 edge-router-policy, 5 service-edge-router-policies"
