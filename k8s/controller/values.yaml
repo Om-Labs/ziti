@@ -8,11 +8,7 @@ clientApi:
     enabled: true
     type: ClusterIP
   ingress:
-    enabled: true
-    ingressClassName: nginx
-    annotations:
-      kubernetes.io/ingress.allow-http: "false"
-      nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+    enabled: false
 
 ctrlPlane:
   advertisedPort: 443
