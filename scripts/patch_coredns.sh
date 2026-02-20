@@ -42,6 +42,7 @@ HOSTS=(
   "pbx.focuscell.org"
   "admin.focuscell.org"
   "api.focuscell.org"
+  "harbor.buck-lab-k8s.omlabs.org"
 )
 
 # ---------- helpers ----------------------------------------------------------
