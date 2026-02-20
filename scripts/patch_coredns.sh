@@ -3,8 +3,8 @@ set -euo pipefail
 
 # Patch CoreDNS hosts block with entries needed for in-cluster resolution.
 #
-# Discovers the nginx ingress ClusterIP dynamically (not hardcoded) so this
-# works across DCs. Merges entries into the existing Corefile — does NOT
+# Discovers the Envoy Gateway proxy ClusterIP dynamically (not hardcoded) so
+# this works across DCs. Merges entries into the existing Corefile — does NOT
 # replace the entire ConfigMap.
 #
 # Idempotent: entries that already exist in the hosts block are skipped.
@@ -13,7 +13,7 @@ set -euo pipefail
 #   scripts/patch_coredns.sh                # patch CoreDNS
 #   DRY_RUN=1 scripts/patch_coredns.sh      # show diff only
 #
-# Required entries (all point to nginx ingress ClusterIP):
+# Required entries (all point to Envoy Gateway proxy ClusterIP):
 #   auth-buck.omlabs.org      — Keycloak OIDC, needed by Coder/Slidee/ArgoCD/GitLab
 #   argocd-buck.omlabs.org    — ArgoCD, needed by GitLab webhooks
 #   dev.slidee.net            — Slidee, needs OIDC callback resolution
@@ -27,10 +27,10 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
 DRY_RUN="${DRY_RUN:-}"
-INGRESS_NS="${INGRESS_NS:-ingress-nginx}"
-INGRESS_SVC="${INGRESS_SVC:-ingress-nginx-controller}"
+INGRESS_NS="${INGRESS_NS:-envoy-gateway-system}"
+INGRESS_SVC="${INGRESS_SVC:-envoy-envoy-gateway-system-main-b3b376e9}"
 
-# Hostnames to add (all resolve to the nginx ingress ClusterIP).
+# Hostnames to add (all resolve to the Envoy Gateway proxy ClusterIP).
 HOSTS=(
   "auth-buck.omlabs.org"
   "argocd-buck.omlabs.org"
@@ -49,9 +49,9 @@ HOSTS=(
 log() { printf '[%s] ==> %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*"; }
 warn() { printf '[%s] WARN: %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*" >&2; }
 
-# ---------- discover nginx ingress ClusterIP ---------------------------------
+# ---------- discover Envoy Gateway proxy ClusterIP ---------------------------
 
-log "Discovering nginx ingress ClusterIP"
+log "Discovering Envoy Gateway proxy ClusterIP"
 INGRESS_IP=$(kubectl -n "$INGRESS_NS" get svc "$INGRESS_SVC" \
   -o jsonpath='{.spec.clusterIP}')
 
@@ -60,7 +60,7 @@ if [[ -z "$INGRESS_IP" ]]; then
   exit 1
 fi
 
-log "Nginx ingress ClusterIP: $INGRESS_IP"
+log "Envoy Gateway proxy ClusterIP: $INGRESS_IP"
 
 # ---------- read current Corefile --------------------------------------------
 

@@ -35,23 +35,9 @@ kubectl apply -f k8s/manifests/namespace.yaml
 log "Applying service account"
 kubectl apply -f k8s/manifests/serviceaccount.yaml
 
-# ---------- 2. ssl-passthrough on ingress-nginx (idempotent) -----------------
+# ---------- 2. Envoy Gateway (TLS passthrough is native — no patching needed) -
 
-log "Ensuring ssl-passthrough on ingress-nginx"
-INGRESS_NS="${INGRESS_NS:-ingress-nginx}"
-INGRESS_DEPLOY="${INGRESS_DEPLOY:-ingress-nginx-controller}"
-
-current_args=$(kubectl -n "$INGRESS_NS" get deploy "$INGRESS_DEPLOY" \
-  -o jsonpath='{.spec.template.spec.containers[0].args}' 2>/dev/null || echo "")
-
-if echo "$current_args" | grep -q "enable-ssl-passthrough"; then
-  log "ssl-passthrough already enabled"
-else
-  log "Patching $INGRESS_DEPLOY to add --enable-ssl-passthrough"
-  kubectl -n "$INGRESS_NS" patch deploy "$INGRESS_DEPLOY" --type=json \
-    -p '[{"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--enable-ssl-passthrough"}]'
-  wait_for_rollout "$INGRESS_NS" "deploy/$INGRESS_DEPLOY" 120
-fi
+log "Envoy Gateway handles TLS passthrough natively via TLSRoute — skipping"
 
 # ---------- 3. helm repo ----------------------------------------------------
 

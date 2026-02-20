@@ -74,13 +74,13 @@ kubectl apply -f "$ROOT_DIR/k8s/metallb/ip-pool.yaml"
 log "Verifying MetalLB resources"
 kubectl -n "$METALLB_NS" get ipaddresspool,l2advertisement
 
-LB_IP=$(kubectl -n ingress-nginx get svc ingress-nginx-controller \
+LB_IP=$(kubectl -n envoy-gateway-system get svc envoy-envoy-gateway-system-main-b3b376e9 \
   -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null || true)
 
 if [[ -n "$LB_IP" ]]; then
-  log "Ingress LoadBalancer IP: $LB_IP"
+  log "Envoy Gateway LoadBalancer IP: $LB_IP"
 else
-  warn "Ingress does not yet have a LoadBalancer IP — check the IPAddressPool range"
+  warn "Envoy Gateway does not yet have a LoadBalancer IP — check the IPAddressPool range"
 fi
 
 log "Done"

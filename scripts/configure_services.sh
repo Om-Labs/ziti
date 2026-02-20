@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Create Ziti configs, services, and policies for routing all internal
-# services through the OpenZiti overlay via nginx ingress.
+# services through the OpenZiti overlay via Envoy Gateway.
 #
 # Idempotent: safe to re-run. Existing resources are skipped (not updated).
 #
@@ -103,11 +103,11 @@ fi
 
 log "--- Phase 1: Configs ---"
 
-# 1a. Shared host.v1 — all HTTPS services route through nginx ingress.
+# 1a. Shared host.v1 — all HTTPS services route through Envoy Gateway proxy.
 log "Creating host.v1 config: nginx-ingress-host"
 ziti_exec "create config nginx-ingress-host host.v1 '{
   \"protocol\": \"tcp\",
-  \"address\": \"ingress-nginx-controller.ingress-nginx.svc\",
+  \"address\": \"envoy-envoy-gateway-system-main-b3b376e9.envoy-gateway-system.svc\",
   \"port\": 443
 }'"
 
@@ -118,7 +118,7 @@ ziti_exec "create config nginx-ingress-host host.v1 '{
 log "--- Phase 2: Intercept configs + services ---"
 
 # Format: "service_name|intercept_hostname|port|host_config"
-# host_config defaults to nginx-ingress-host when empty.
+# host_config defaults to nginx-ingress-host (routes to Envoy Gateway) when empty.
 SERVICES=(
   "harbor|harbor.buck-lab-k8s.omlabs.org|443|"
   "keycloak|auth-buck.omlabs.org|443|"
